@@ -702,6 +702,19 @@ input {
     background 0.3s;
 }
 
+.timer-stop-btn {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--gold-border);
+  background: rgba(255,255,255,0.72);
+  color: #1a3156;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
 /* Bid Right */
 .bid-right {
   display: flex;

@@ -138,9 +138,11 @@ function MP4Video({ className, src }: { className?: string; src: string }) {
 // ─── Countdown Timer ──────────────────────────────────────────────────────────
 function CountdownTimer({
   seconds,
+  paused,
   onEnd,
 }: {
   seconds: number;
+  paused?: boolean;
   onEnd?: () => void;
 }) {
   const [left, setLeft] = useState(seconds);
@@ -148,13 +150,14 @@ function CountdownTimer({
     setLeft(seconds);
   }, [seconds]);
   useEffect(() => {
+    if (paused) return;
     if (left <= 0) {
       onEnd?.();
       return;
     }
     const t = setTimeout(() => setLeft((l) => l - 1), 1000);
     return () => clearTimeout(t);
-  }, [left, onEnd]);
+  }, [left, onEnd, paused]);
   const pct = (left / seconds) * 100;
   const urgent = left <= 10;
   return (
@@ -328,7 +331,9 @@ function CenterPanel({
   bidResetKey: number;
 }) {
   const [timerKey, setTimerKey] = useState(0);
+  const [timerPaused, setTimerPaused] = useState(false);
   useEffect(() => setTimerKey((k) => k + 1), [current, bidResetKey]);
+  useEffect(() => setTimerPaused(false), [current, bidResetKey]);
 
   const tierColor =
     current?.tier === "LEVEL 1"
@@ -423,7 +428,10 @@ function CenterPanel({
                 </div>
                 <div className="cbb-amount">{formatL(bidL)}</div>
               </div>
-              <CountdownTimer key={timerKey} seconds={45} onEnd={() => onSold()} />
+              <CountdownTimer key={timerKey} seconds={45} paused={timerPaused} onEnd={() => onSold()} />
+              <button className="timer-stop-btn" onClick={() => setTimerPaused((p) => !p)}>
+                {timerPaused ? "Resume Timer" : "Stop Timer"}
+              </button>
             </div>
 
             <div className="bid-right">
