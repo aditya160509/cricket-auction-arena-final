@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dot. — Quick bids. Pure game.</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital,wght@0,400;1,400&family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://db.onlinewebfonts.com/c/440b53b1a1c65037f944ff19259d8014?family=Nokia+Cellphone+FC+Small" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    @import url('https://db.onlinewebfonts.com/c/440b53b1a1c65037f944ff19259d8014?family=Nokia+Cellphone+FC+Small');
+    *{margin:0;padding:0;box-sizing:border-box;}
+    :root{
+      --fi:"Instrument Serif",serif;
+      --fs:"Inter",sans-serif;
+      --fa:"Anton",sans-serif;
+      --fn:"Nokia Cellphone FC Small",monospace;
+      --cream:#F3F4ED;
+      --ink:#0d0d0d;
+      --blue:#0871E7;
+    }
+    html,body,#root{font-family:var(--fs);-webkit-font-smoothing:antialiased;background:var(--ink);overflow-x:hidden;}
+    @keyframes blink{0%,100%{opacity:0}50%{opacity:1}}
+    .blink{animation:blink 0.8s linear infinite;}
+    @keyframes hScale{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+    @keyframes hUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    .h-anim{animation:hScale 1.5s cubic-bezier(0.16,1,0.3,1) 0.2s both;}
+    .h-sub{animation:hUp 1.2s cubic-bezier(0.16,1,0.3,1) 0.5s both;}
+    .gs-up{opacity:0;transform:translateY(50px);}
+    .gs-left{opacity:0;transform:translateX(-60px);}
+    .gs-right{opacity:0;transform:translateX(60px);}
+    /* ── NAVBAR ── */
+    .nav-wrap{position:fixed;top:1.5rem;left:50%;transform:translateX(-50%);width:95%;max-width:64rem;z-index:100;pointer-events:none;}
+    .nav-inner{pointer-events:auto;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:9999px;background:rgba(255,255,255,0.04);box-shadow:inset 0 1px 1px rgba(255,255,255,0.12),inset 0 -1px 1px rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1.75rem;position:relative;overflow:hidden;}
+    .nav-inner::before{content:'';position:absolute;inset:0;border-radius:9999px;padding:1px;background:linear-gradient(180deg,rgba(255,255,255,0.35) 0%,rgba(255,255,255,0.08) 50%,rgba(255,255,255,0.2) 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+    .nav-logo{font-family:var(--fi);font-size:1.75rem;letter-spacing:-0.02em;color:#fff;font-style:italic;}
+    .nav-links{display:flex;gap:2.5rem;}
+    @media(max-width:767px){.nav-links{display:none;}}
+    .nav-links a{font-family:var(--fs);font-size:0.875rem;color:rgba(255,255,255,0.7);text-decoration:none;transition:color 0.2s;}
+    .nav-links a:hover{color:#fff;}
+    .nav-btn{position:relative;background:var(--blue);color:white;border:none;border-radius:9999px;padding:0.5rem 1.5rem;font-family:var(--fs);font-size:0.875rem;font-weight:500;cursor:pointer;box-shadow:inset 0 -4px 4px rgba(255,255,255,0.39);overflow:hidden;transition:filter 0.2s;}
+    .nav-btn::before{content:'';position:absolute;width:80%;height:1rem;left:10%;top:1px;background:linear-gradient(to bottom,#DEF0FC,transparent);border-radius:0.75rem;pointer-events:none;}
+    .nav-btn:hover{filter:brightness(1.1);}
+    .nav-btn span{position:relative;z-index:1;}
+    /* ── HERO ── */
+    .hero{position:relative;height:100vh;background:var(--cream);overflow:hidden;display:flex;flex-direction:column;}
+    .vid-fill{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
+    .vid-tint{position:absolute;inset:0;background:rgba(255,255,255,0.04);z-index:1;}
+    .hero-txt{position:relative;z-index:20;pointer-events:none;text-align:center;padding:7rem 1.5rem 0;}
+    .hero-h{font-family:var(--fi);font-size:clamp(2.5rem,5.5vw,4.5rem);line-height:0.88;letter-spacing:-0.03em;color:#1a1a1a;margin-bottom:1.25rem;font-weight:400;}
+    .hero-p{font-family:var(--fs);font-size:clamp(0.9rem,1.8vw,1.1rem);color:rgba(26,26,26,0.65);line-height:1.6;max-width:26rem;margin:0 auto;}
+    .typing-wrap{position:absolute;left:48.5%;transform:translateX(-50%);bottom:31%;z-index:30;width:110px;text-align:left;}
+    @media(min-width:640px){.typing-wrap{width:130px;}}
+    @media(min-width:768px){.typing-wrap{left:47.5%;}}
+    @media(min-width:1024px){.typing-wrap{left:48.5%;}}
+    .typing-txt{font-family:var(--fn);color:#2A3616;font-size:10px;line-height:1.5;word-break:break-word;min-height:1.5em;}
+    @media(min-width:640px){.typing-txt{font-size:14px;}}
+    /* ── BRIDGE (connects sections) ── */
+    .bridge{background:var(--ink);padding:5rem 2rem;display:flex;flex-direction:column;align-items:center;text-align:center;gap:1.5rem;}
+    .bridge-tag{font-family:var(--fs);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.2em;color:rgba(255,255,255,0.3);font-weight:600;}
+    .bridge-h{font-family:var(--fi);font-size:clamp(2rem,5vw,3.5rem);line-height:0.92;letter-spacing:-0.03em;color:white;max-width:700px;}
+    .bridge-h em{font-style:italic;color:rgba(255,255,255,0.4);}
+    .bridge-rule{width:1px;height:80px;background:linear-gradient(to bottom,rgba(255,255,255,0.15),transparent);margin:0 auto;}
+    /* ── VIDEO BRIDGE ── */
+    .vbridge{position:relative;overflow:hidden;margin-top:-3rem;margin-bottom:-3rem;z-index:6;min-height:55vh;display:flex;align-items:center;justify-content:center;}
+    .vbridge-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
+    .vbridge-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.7);z-index:1;}
+    .vbridge-inner{position:relative;z-index:2;text-align:center;padding:6rem 2rem;}
+    /* ── AI INPUT ── */
+    .ai-card{background:rgba(255,255,255,0.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:1.75rem;overflow:hidden;position:relative;box-shadow:0 4px 40px rgba(0,0,0,0.18),inset 0 1px 0 rgba(255,255,255,0.9);}
+    .ai-card::before{content:'';position:absolute;inset:0;border-radius:1.75rem;padding:1px;background:linear-gradient(160deg,rgba(0,0,0,0.12) 0%,rgba(0,0,0,0.04) 40%,rgba(0,0,0,0.08) 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+    .ai-topbar{display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1.25rem;border-bottom:1px solid rgba(0,0,0,0.07);}
+    .ai-credit{display:flex;align-items:center;gap:0.5rem;font-family:var(--fs);font-size:0.75rem;color:rgba(0,0,0,0.45);}
+    .ai-credit-pill{background:#0d2b0d;color:#6FFF00;border-radius:9999px;padding:0.15rem 0.6rem;font-size:0.65rem;font-weight:700;letter-spacing:0.05em;}
+    .ai-powered{font-family:var(--fs);font-size:0.65rem;color:rgba(0,0,0,0.3);}
+    .ai-input{width:100%;background:transparent;border:none;outline:none;color:#1a1a1a;font-family:var(--fs);font-size:1.05rem;padding:1.1rem 1.25rem;resize:none;min-height:64px;line-height:1.5;}
+    .ai-input::placeholder{color:rgba(0,0,0,0.25);}
+    .ai-input::-webkit-scrollbar{display:none;}
+    .ai-bottombar{display:flex;justify-content:space-between;align-items:center;padding:0.6rem 1.25rem 0.9rem;}
+    .ai-actions{display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;}
+    .ai-action-btn{background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.08);border-radius:9999px;color:rgba(0,0,0,0.55);font-family:var(--fs);font-size:0.72rem;cursor:pointer;padding:0.3rem 0.85rem;transition:all 0.2s;}
+    .ai-action-btn:hover{background:rgba(0,0,0,0.1);color:#1a1a1a;}
+    .ai-submit{width:2.25rem;height:2.25rem;border-radius:9999px;background:#1a1a1a;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+    .ai-submit:hover{background:#333;transform:scale(1.05);}
+    /* ── VIDEO SECTION ── */
+    .vsec{position:relative;width:100%;overflow:hidden;}
+    .vsec-inner{position:relative;}
+    .vsec video{width:100%;display:block;max-height:85vh;object-fit:cover;}
+    .vsec-card{background:var(--ink);border-radius:1.5rem;margin:0 1rem 0;position:relative;z-index:2;}
+    @media(min-width:768px){.vsec-card{margin:0 3rem 0;}}
+    @media(min-width:1024px){.vsec-card{margin:0 5rem 0;}}
+    .vsec-video-wrap{border-radius:1.5rem;overflow:hidden;position:relative;}
+    .vsec-video-wrap::after{content:'';position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(to bottom,transparent,var(--ink));pointer-events:none;}
+    .vsec-content{padding:3rem 2rem 4rem;display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start;max-width:1100px;margin:0 auto;}
+    @media(max-width:768px){.vsec-content{grid-template-columns:1fr;gap:2rem;}}
+    .vsec-label{font-family:var(--fs);font-size:0.7rem;text-transform:uppercase;letter-spacing:0.2em;color:#6FFF00;font-weight:600;margin-bottom:1rem;}
+    .vsec-h{font-family:var(--fi);font-size:clamp(2rem,4vw,3rem);line-height:0.92;letter-spacing:-0.03em;color:white;margin-bottom:1rem;}
+    .vsec-p{font-family:var(--fs);font-size:0.95rem;color:rgba(255,255,255,0.5);line-height:1.75;}
+    .step-cards{display:flex;flex-direction:column;gap:1rem;}
+    .step-card{background:rgba(255,255,255,0.03);border-radius:1rem;padding:1.25rem 1.5rem;display:flex;gap:1rem;align-items:flex-start;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:inset 0 1px 1px rgba(255,255,255,0.1);position:relative;overflow:hidden;}
+    .step-card::before{content:'';position:absolute;inset:0;border-radius:1rem;padding:1px;background:linear-gradient(180deg,rgba(255,255,255,0.25) 0%,rgba(255,255,255,0.05) 50%,rgba(255,255,255,0.15) 100%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
+    .step-num{font-family:var(--fi);font-size:1.5rem;color:rgba(255,255,255,0.15);line-height:1;flex-shrink:0;width:2rem;}
+    .step-body h4{font-family:var(--fs);font-size:0.9rem;font-weight:600;color:white;margin-bottom:0.25rem;}
+    .step-body p{font-family:var(--fs);font-size:0.82rem;color:rgba(255,255,255,0.45);line-height:1.6;}
+    /* stats row */
+    .stats-row{display:flex;gap:2.5rem;flex-wrap:wrap;margin-top:2rem;}
+    .stat-num{font-family:var(--fi);font-size:2.25rem;color:white;line-height:1;margin-bottom:0.25rem;}
+    .stat-lbl{font-family:var(--fs);font-size:0.7rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.12em;}
+    /* ── CAROUSEL ── */
+    .carousel-wrap{background:var(--ink);padding:0;}
+    .carousel-header{padding:4rem 2rem 0;max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1.5rem;}
+    .carousel-section{position:relative;width:100%;overflow:hidden;}
+    .carousel-stage{position:relative;width:100%;height:60vh;min-height:400px;max-height:600px;}
+    .ghost-txt{position:absolute;inset-x:0;display:flex;align-items:center;justify-content:center;pointer-events:none;user-select:none;z-index:2;top:50%;transform:translateY(-55%);font-family:var(--fa);font-weight:900;color:white;opacity:0.06;line-height:1;white-space:nowrap;letter-spacing:-0.02em;font-size:clamp(80px,18vw,220px);text-transform:uppercase;}
+    .c-item{position:absolute;aspect-ratio:0.6/1;transition:transform 650ms cubic-bezier(0.4,0,0.2,1),filter 650ms cubic-bezier(0.4,0,0.2,1),opacity 650ms cubic-bezier(0.4,0,0.2,1),left 650ms cubic-bezier(0.4,0,0.2,1);will-change:transform,filter,opacity;}
+    .c-item img{width:100%;height:100%;object-fit:contain;object-position:bottom center;user-select:none;pointer-events:none;display:block;}
+    .carousel-footer{padding:2rem;max-width:1100px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1.5rem;}
+    .carousel-desc{font-family:var(--fs);font-size:0.9rem;color:rgba(255,255,255,0.45);line-height:1.6;max-width:400px;}
+    .c-btns{display:flex;gap:0.75rem;}
+    .c-btn{width:3.5rem;height:3.5rem;border-radius:9999px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;font-size:1.1rem;}
+    .c-btn:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.3);}
+    /* ── CLOSING ── */
+    .closing{position:relative;min-height:100vh;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+    .closing-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;}
+    .closing-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.6);z-index:1;}
+    .closing-inner{position:relative;z-index:10;text-align:center;padding:2rem;}
+    .closing-h{font-family:var(--fi);font-size:clamp(2.5rem,6vw,5.5rem);line-height:0.88;letter-spacing:-0.03em;color:white;margin-bottom:1.5rem;}
+    .closing-p{font-family:var(--fs);font-size:1rem;color:rgba(255,255,255,0.5);max-width:28rem;margin:0 auto 2.5rem;line-height:1.7;}
+    .cta-btn{display:inline-block;background:var(--blue);color:white;border:none;border-radius:9999px;padding:1rem 3rem;font-family:var(--fs);font-size:1rem;font-weight:600;cursor:pointer;box-shadow:inset 0 -4px 4px rgba(255,255,255,0.39),0 8px 32px rgba(8,113,231,0.4);transition:all 0.3s;position:relative;overflow:hidden;}
+    .cta-btn::before{content:'';position:absolute;width:80%;height:1rem;left:10%;top:2px;background:linear-gradient(to bottom,#DEF0FC,transparent);border-radius:0.75rem;}
+    .cta-btn:hover{transform:scale(1.04);filter:brightness(1.1);}
+    .cta-btn span{position:relative;z-index:1;}
+    footer{background:#000;border-top:1px solid rgba(255,255,255,0.06);padding:2rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;}
+    .foot-logo{font-family:var(--fi);font-size:1.5rem;color:rgba(255,255,255,0.6);font-style:italic;}
+    .foot-copy{font-family:var(--fs);font-size:0.8rem;color:rgba(255,255,255,0.2);}
+    .progress-dots{position:fixed;right:1.5rem;top:50%;transform:translateY(-50%);z-index:200;display:flex;flex-direction:column;gap:0.75rem;}
+    .p-dot{width:5px;height:5px;border-radius:9999px;background:rgba(255,255,255,0.2);transition:all 0.3s;cursor:pointer;}
+    .p-dot.active{background:var(--blue);transform:scale(1.5);}
+    @media(max-width:640px){.progress-dots{display:none;}}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { useState, useEffect, useRef } = React;
+
+  /* ─── TYPING ─── */
+  const Typing = () => {
+    const msgs = [
+      {t:"malkan chutiya hai"},
+      {t:"aditya is the goat"},
+      {t:"raihan kalla hai"},
+      {t:"vihaan bench pe sota hai"},
+      {t:"fouzdhar dono pair left hai"},
+      {t:"vihaan ka shot wide gaya"},
+      {t:"fouzdhar offside ka raja"},
+      {t:"aarnav bohot bada... cheater hai", b:17, bd:3200},
+    ];
+    const [overrideMsg, setOverrideMsg] = useState(null);
+    const [text, setText] = useState('');
+    const [mi, setMi] = useState(0);
+    const [ci, setCi] = useState(0);
+    const [del, setDel] = useState(false);
+    useEffect(() => {
+      const cur = overrideMsg ? {t: overrideMsg} : msgs[mi]; let t;
+      if (!del) {
+        if (ci < cur.t.length) {
+          const delay = (cur.b && ci === cur.b) ? cur.bd : 100;
+          t = setTimeout(() => { setText(cur.t.slice(0,ci+1)); setCi(c=>c+1); }, delay);
+        } else {
+          t = setTimeout(() => setDel(true), 2000);
+        }
+      } else {
+        if (ci > 0) t = setTimeout(() => { setText(cur.t.slice(0,ci-1)); setCi(c=>c-1); }, 50);
+        else {
+          setDel(false);
+          // Check global queue for user-typed messages
+          if (window.__phoneQueue && window.__phoneQueue.length > 0) {
+            setOverrideMsg(window.__phoneQueue.shift());
+          } else {
+            setOverrideMsg(null);
+            setMi(i=>(i+1)%msgs.length);
+          }
+        }
+      }
+      return () => clearTimeout(t);
+    }, [ci, del, mi, overrideMsg]);
+    return (
+      <div className="typing-wrap">
+        <span className="typing-txt">
+          {text}
+          <span className="blink" style={{display:'inline-block',width:6,height:12,background:'#2A3616',marginLeft:4,verticalAlign:'middle'}} />
+        </span>
+      </div>
+    );
+  };
+
+  /* ─── NAVBAR ─── */
+  const Navbar = () => (
+    <div className="nav-wrap">
+      <div className="nav-inner">
+        <span className="nav-logo">dot.</span>
+        <div className="nav-links">
+          {['Philosophy','Trust','Access','Tribe'].map(l=><a key={l} href="#">{l}</a>)}
+        </div>
+        <button className="nav-btn"><span>Link up</span></button>
+      </div>
+    </div>
+  );
+
+  /* ─── AI INPUT (below hero, feeds Nokia screen) ─── */
+  const AiInput = () => {
+    const [val, setVal] = useState('');
+    const [sent, setSent] = useState(false);
+
+    const submit = () => {
+      const trimmed = val.trim();
+      if (!trimmed) return;
+      if (!window.__phoneQueue) window.__phoneQueue = [];
+      window.__phoneQueue.unshift(trimmed);
+      setSent(true);
+      setVal('');
+      setTimeout(() => setSent(false), 2500);
+    };
+
+    const handleKey = (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
+    };
+
+    return (
+      <section style={{background:'var(--ink)',padding:'3rem 2rem',display:'flex',justifyContent:'center'}}>
+        <div style={{width:'min(620px,90vw)'}}>
+          <div className="ai-card">
+            <div className="ai-topbar">
+              <div className="ai-credit">
+                <span className="ai-credit-pill">LIVE</span>
+                <span>Send to Nokia screen</span>
+              </div>
+              <div style={{fontFamily:'var(--fs)',fontSize:'0.65rem',color:'rgba(255,255,255,0.25)'}}>
+                {sent ? '✓ Watch the screen above' : 'Enter to send'}
+              </div>
+            </div>
+            <textarea
+              className="ai-input"
+              placeholder="Type anything... it shows on the Nokia above"
+              value={val}
+              onChange={e => setVal(e.target.value)}
+              onKeyDown={handleKey}
+              rows={2}
+              style={{fontSize:'1rem'}}
+            />
+            <div className="ai-bottombar">
+              <div className="ai-actions">
+                {['malkan chutiya hai','vihaan bench pe hai','aarnav cheater hai'].map(s => (
+                  <button key={s} className="ai-action-btn" onClick={() => setVal(s)}>{s}</button>
+                ))}
+              </div>
+              <button className="ai-submit" onClick={submit}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  };
+
+  /* ─── VIDEO BRIDGE ─── */
+  const VideoBridge = ({tag, text, italic, src}) => {
+    const vidRef = useRef(null);
+    useEffect(() => {
+      const v = vidRef.current; if (!v) return;
+      if (window.Hls && window.Hls.isSupported()) {
+        const hls = new window.Hls();
+        hls.loadSource(src); hls.attachMedia(v);
+        hls.on(window.Hls.Events.MANIFEST_PARSED, () => v.play().catch(()=>{}));
+      } else if (v.canPlayType('application/vnd.apple.mpegurl')) {
+        v.src = src; v.play().catch(()=>{});
+      }
+    }, []);
+    return (
+      <div className="vbridge">
+        <video ref={vidRef} className="vbridge-vid" loop muted playsInline />
+        <div className="vbridge-overlay" />
+        <div className="vbridge-inner">
+          <p className="bridge-tag gs-up">{tag}</p>
+          <h2 className="bridge-h gs-up">{text}{italic && <><br /><em>{italic}</em></>}</h2>
+        </div>
+      </div>
+    );
+  };
+
+  /* ─── HERO ─── */
+  const Hero = () => (
+    <section className="hero" data-section="0">
+      <video className="vid-fill" autoPlay loop muted playsInline>
+        <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260427_054418_a6d194f0-ac86-4df9-abe5-ded73e596d7c.mp4" type="video/mp4" />
+      </video>
+      <div className="vid-tint" />
+      <div className="hero-txt">
+        <h1 className="hero-h h-anim">Quick bids.<br />Pure game.</h1>
+        <p className="hero-p h-sub">Matched with a rival on your turf. One bid every round. A fair fight between friends, settled on the pitch.</p>
+      </div>
+      <Typing />
+    </section>
+  );
+
+  /* ─── BRIDGE ─── */
+  const Bridge = ({tag, text, italic}) => (
+    <div className="bridge">
+      <div className="bridge-rule" />
+      <p className="bridge-tag">{tag}</p>
+      <h2 className="bridge-h">{text}{italic && <><br /><em>{italic}</em></>}</h2>
+      <div className="bridge-rule" style={{background:'linear-gradient(to top, rgba(255,255,255,0.15), transparent)'}} />
+    </div>
+  );
+
+  /* ─── SECTION 2 ─── */
+  const Section2 = () => (
+    <section className="vsec" data-section="1">
+      <div className="vsec-card">
+        <div className="vsec-video-wrap">
+          <video autoPlay loop muted playsInline style={{width:'100%',display:'block',maxHeight:'70vh',objectFit:'cover'}}>
+            <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260508_155101_f2540600-6fe9-433e-8e48-b3f4b72f0727.mp4" type="video/mp4" />
+          </video>
+        </div>
+        <div className="vsec-content">
+          <div>
+            <p className="vsec-label gs-left">How it works</p>
+            <h2 className="vsec-h gs-left">Three rounds.<br />One winner.</h2>
+            <p className="vsec-p gs-left">Football auctions between your crew — simple, fast, and settled on the pitch. No apps. No nonsense. Just football.</p>
+          </div>
+          <div className="step-cards">
+            {[
+              {n:'01',t:'Pick your squad',d:'Each player selects their team before the match. Locked in — no switching allowed.'},
+              {n:'02',t:'Place your bid',d:'One message. One bid. Highest honest offer wins the pot.'},
+              {n:'03',t:'Settle on the pitch',d:'Winner takes all after 90 minutes. Bragging rights included.'},
+            ].map((c,i)=>(
+              <div key={i} className="step-card gs-up">
+                <div className="step-num">{c.n}</div>
+                <div className="step-body"><h4>{c.t}</h4><p>{c.d}</p></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
+  /* ─── SECTION 3 ─── */
+  const Section3 = () => (
+    <section className="vsec" data-section="2">
+      <div className="vsec-card">
+        <div className="vsec-video-wrap">
+          <video autoPlay loop muted playsInline style={{width:'100%',display:'block',maxHeight:'70vh',objectFit:'cover'}}>
+            <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260511_230229_7c9bc431-46cf-489a-948d-e8144d8eb5d4.mp4" type="video/mp4" />
+          </video>
+        </div>
+        <div className="vsec-content">
+          <div>
+            <p className="vsec-label gs-left">The auction floor</p>
+            <h2 className="vsec-h gs-left">Raise the stakes.<br />Own the match.</h2>
+            <p className="vsec-p gs-left">Every Friday the group chat goes live. Bids in. Squads locked. Only one crew walks away with the weekend bragging rights.</p>
+            <div className="stats-row">
+              {[{n:'48h',l:'Bidding window'},{n:'100%',l:'Transparent'},{n:'1',l:'Winner per match'}].map(s=>(
+                <div key={s.l} className="gs-up">
+                  <div className="stat-num">{s.n}</div>
+                  <div className="stat-lbl">{s.l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{display:'flex',flexDirection:'column',gap:'1rem'}}>
+            {[
+              {t:'One bid per player',d:'No revisions. Your first bid is final.'},
+              {t:'Bids locked at kickoff',d:'Once the whistle blows, the auction closes.'},
+              {t:'Disputes go to the group',d:'Majority rules on any contested result.'},
+              {t:'Pot paid within 24h',d:'Winner receives their earnings by next morning.'},
+            ].map((r,i)=>(
+              <div key={i} className="step-card gs-up">
+                <div className="step-num" style={{fontSize:'0.75rem',color:'var(--blue)',width:'auto',fontFamily:'var(--fs)',fontWeight:600,letterSpacing:'0.1em'}}>{String(i+1).padStart(2,'0')}</div>
+                <div className="step-body"><h4>{r.t}</h4><p>{r.d}</p></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+
+  /* ─── CAROUSEL ─── */
+  const IMAGES = [
+    {src:'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/1.02464a56.png',bg:'#F4845F',name:'Vihaan'},
+    {src:'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/2.b977faab.png',bg:'#6BBF7A',name:'Anjaneya'},
+    {src:'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/3.4df853b4.png',bg:'#E882B4',name:'Malkan'},
+    {src:'https://fifth-gentle-45902158.figma.site/_components/v2/4de492f6d9cf8244ad5293233e5c6f52407d42fc/4.4457fbce.png',bg:'#6EB5FF',name:'Aditya'},
+  ];
+
+  const Carousel = () => {
+    const [idx, setIdx] = useState(0);
+    const [anim, setAnim] = useState(false);
+
+    useEffect(() => {
+      IMAGES.forEach(img => { const i = new Image(); i.src = img.src; });
+    }, []);
+
+    const nav = (d) => {
+      if (anim) return;
+      setAnim(true);
+      setIdx(p => d==='next'?(p+1)%4:(p+3)%4);
+      setTimeout(() => setAnim(false), 500);
+    };
+
+    // Order: left-small, left-large, center(active), right-large, right-small
+    const order = [(idx+3)%4, (idx+2)%4, idx, (idx+1)%4, (idx+2+1)%4];
+    // Actually just show all 4 with active enlarged
+    const sizes = [
+      {scale:0.65, opacity:0.45, blur:'blur(2px)', zIdx:1},  // far left
+      {scale:0.85, opacity:0.7, blur:'blur(1px)', zIdx:2},   // near left
+      {scale:1,    opacity:1,   blur:'none',       zIdx:3},  // center (active)
+      {scale:0.85, opacity:0.7, blur:'blur(1px)', zIdx:2},   // near right
+    ];
+
+    return (
+      <section data-section="3" style={{background:'var(--ink)', padding:'4rem 0 5rem'}}>
+        {/* Header */}
+        <div style={{maxWidth:'1100px',margin:'0 auto',padding:'0 2rem 3rem',display:'flex',justifyContent:'space-between',alignItems:'flex-end',flexWrap:'wrap',gap:'1rem'}}>
+          <div>
+            <p style={{fontFamily:'var(--fs)',fontSize:'0.7rem',textTransform:'uppercase',letterSpacing:'0.2em',color:'#6FFF00',fontWeight:600,marginBottom:'0.75rem'}}>The Collection</p>
+            <h2 style={{fontFamily:'var(--fi)',fontSize:'clamp(2rem,4vw,3rem)',lineHeight:0.92,letterSpacing:'-0.03em',color:'white'}}>Football Stars</h2>
+          </div>
+          <div style={{display:'flex',gap:'0.75rem'}}>
+            <button className="c-btn" onClick={()=>nav('prev')}>←</button>
+            <button className="c-btn" onClick={()=>nav('next')}>→</button>
+          </div>
+        </div>
+
+        {/* Cards row — full figures always visible */}
+        <div style={{display:'flex',alignItems:'flex-end',justifyContent:'center',gap:'1rem',padding:'0 1rem',overflowX:'hidden'}}>
+          {IMAGES.map((img, i) => {
+            const dist = ((i - idx + 4) % 4);
+            const pos = dist === 0 ? 'center' : dist === 1 ? 'right1' : dist === 2 ? 'right2' : 'left1';
+            const s = dist===0 ? {h:420,w:270,op:1,blur:'none',scale:1} :
+                      dist===1||dist===3 ? {h:320,w:210,op:0.65,blur:'blur(1px)',scale:0.95} :
+                      {h:240,w:160,op:0.35,blur:'blur(2px)',scale:0.9};
+            return (
+              <div
+                key={i}
+                onClick={() => !anim && setIdx(i)}
+                style={{
+                  width: s.w,
+                  height: s.h,
+                  flexShrink: 0,
+                  borderRadius: '1.25rem',
+                  overflow: 'hidden',
+                  background: img.bg,
+                  opacity: s.op,
+                  filter: s.blur,
+                  transform: `scale(${s.scale})`,
+                  transformOrigin: 'bottom center',
+                  transition: 'all 600ms cubic-bezier(0.4,0,0.2,1)',
+                  cursor: dist===0?'default':'pointer',
+                  boxShadow: dist===0 ? `0 24px 60px ${img.bg}55` : 'none',
+                  position: 'relative',
+                }}
+              >
+                <img
+                  src={img.src}
+                  alt={img.name}
+                  draggable={false}
+                  style={{width:'100%',height:'100%',objectFit:'contain',objectPosition:'bottom center',display:'block'}}
+                />
+                {/* Name label */}
+                <div style={{
+                  position:'absolute',bottom:0,left:0,right:0,
+                  background:'linear-gradient(to top, rgba(0,0,0,0.6), transparent)',
+                  backdropFilter:'blur(4px)',
+                  WebkitBackdropFilter:'blur(4px)',
+                  padding:'1rem 0.75rem 0.6rem',
+                  borderRadius:'0 0 1.25rem 1.25rem',
+                  textAlign:'center',
+                }}>
+                  <span style={{
+                    fontFamily:'var(--fs)',
+                    fontSize: dist===0 ? '0.9rem' : '0.7rem',
+                    fontWeight:700,
+                    color:'white',
+                    textTransform:'uppercase',
+                    letterSpacing:'0.12em',
+                    opacity: dist===0 ? 1 : 0.7,
+                  }}>{img.name}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div style={{maxWidth:'1100px',margin:'2.5rem auto 0',padding:'0 2rem',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'1rem'}}>
+          <p style={{fontFamily:'var(--fs)',fontSize:'0.9rem',color:'rgba(255,255,255,0.4)',lineHeight:1.6,maxWidth:'400px'}}>
+            Every figure ships match-ready. Flawless 3D craftsmanship — claim yours before the final whistle.
+          </p>
+          <a href="#" style={{fontFamily:'var(--fa)',fontSize:'clamp(1.25rem,3vw,2.5rem)',color:'white',textDecoration:'none',letterSpacing:'-0.02em',display:'flex',alignItems:'center',gap:'0.5rem',transition:'opacity 0.2s'}}
+            onMouseEnter={e=>e.currentTarget.style.opacity='0.7'}
+            onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+            BID NOW →
+          </a>
+        </div>
+      </section>
+    );
+  };
+
+  /* ─── CLOSING ─── */
+  const Closing = () => {
+    return (
+      <section className="closing" data-section="4">
+        <video className="closing-vid" autoPlay loop muted playsInline>
+          <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260324_024928_1efd0b0d-6c02-45a8-8847-1030900c4f63.mp4" type="video/mp4" />
+        </video>
+        <div className="closing-overlay" />
+        <div className="closing-inner">
+          <p style={{fontFamily:'var(--fs)',fontSize:'0.7rem',textTransform:'uppercase',letterSpacing:'0.2em',color:'#6FFF00',fontWeight:600,marginBottom:'1.25rem'}}>Final whistle</p>
+          <h2 className="closing-h gs-up">Join the auction.<br />Take the glory.</h2>
+          <p className="closing-p gs-up">Invite your five-a-side crew. Set the stakes. Let the football do the talking.</p>
+          <button className="cta-btn gs-up"><span>Link up →</span></button>
+        </div>
+      </section>
+    );
+  };
+
+  /* ─── PROGRESS DOTS ─── */
+  const Dots = ({a}) => (
+    <div className="progress-dots">
+      {[0,1,2,3,4].map(i=>(
+        <div key={i} className={`p-dot${a===i?' active':''}`}
+          onClick={()=>document.querySelectorAll('[data-section]')[i]?.scrollIntoView({behavior:'smooth'})} />
+      ))}
+    </div>
+  );
+
+  /* ─── APP ─── */
+  const App = () => {
+    const [active, setActive] = useState(0);
+    useEffect(() => {
+      const {gsap, ScrollTrigger} = window;
+      if (!gsap||!ScrollTrigger) return;
+      gsap.registerPlugin(ScrollTrigger);
+      gsap.utils.toArray('.gs-up').forEach(el => gsap.to(el,{opacity:1,y:0,duration:0.9,ease:'power3.out',scrollTrigger:{trigger:el,start:'top 88%',toggleActions:'play none none none'}}));
+      gsap.utils.toArray('.gs-left').forEach((el,i) => gsap.to(el,{opacity:1,x:0,duration:0.9,ease:'power3.out',delay:i*0.08,scrollTrigger:{trigger:el,start:'top 88%',toggleActions:'play none none none'}}));
+      document.querySelectorAll('[data-section]').forEach(el => {
+        ScrollTrigger.create({trigger:el,start:'top 50%',end:'bottom 50%',
+          onEnter:()=>setActive(+el.dataset.section),
+          onEnterBack:()=>setActive(+el.dataset.section)});
+      });
+    }, []);
+    return (
+      <>
+        <Navbar />
+        <Dots a={active} />
+        <Hero />
+        <AiInput />
+        <Bridge tag="The vision behind the auction" text="Unleashing strategies for" italic="teams that compete, scout, and win." />
+        <Section2 />
+        <Bridge tag="The rules of the game" text="Fair play, always." italic="One bid. No excuses." />
+        <Section3 />
+        <Bridge tag="Collect the legends" text="Own your favourite" italic="football stars in 3D." />
+        <Carousel />
+        <Closing />
+        <footer>
+          <span className="foot-logo">dot.</span>
+          <span className="foot-copy">© 2026 dot. Football Auctions. All rights reserved.</span>
+        </footer>
+      </>
+    );
+  };
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
