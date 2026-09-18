@@ -187,6 +187,26 @@ input {
   letter-spacing: 1px;
 }
 
+.captain-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.captain-remove-button {
+  padding: 6px 10px;
+  border: 1px solid rgba(229, 57, 53, 0.45);
+  border-radius: 999px;
+  color: #ff8a85;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.captain-remove-button:hover {
+  background: var(--red-dim);
+}
+
 .promote-button {
   width: 100%;
   text-align: left;

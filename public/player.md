@@ -6,7 +6,6 @@ Drashya Vaghani
 H@R$H€€L
 Keyaan Agarwal
 kian
-Meherzaan
 Priyam
 Raihan Shaikh
 Siddhant Fouzdar

@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
-import Hls from "hls.js";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import "./App.css";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -31,10 +30,6 @@ type SoldFlash = { player: Player; teamName: string; priceL: number };
 const TEAM_BUDGET_L = 1000;
 const TIER_ORDER: Tier[] = ["LEVEL 1", "LEVEL 2", "LEVEL 3"];
 const ROLE_ROTATION = ["Striker", "Winger", "Midfielder", "Defender", "Goalkeeper"];
-const HLS_SRC =
-  "https://stream.mux.com/Aa02T7oM1wH5Mk5EEVDYhbZ1ChcdhRsS2m1NYyx4Ua1g.m3u8";
-const TEAM_ARENA_BG_MP4 =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260506_031045_0e1165dd-ab48-46e3-ad3d-5fe77f217647.mp4";
 
 const GIF_MAP: Record<string, string> = {
   anjaneypandey: "Anjaney",
@@ -107,31 +102,6 @@ function funnyScore(team: Team) {
 }
 
 // ─── HLS Background Video ─────────────────────────────────────────────────────
-function HLSVideo({ className }: { className?: string }) {
-  const ref = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    const video = ref.current;
-    if (!video) return;
-    if (Hls.isSupported()) {
-      const hls = new Hls({ autoStartLoad: true, startLevel: -1 });
-      hls.loadSource(HLS_SRC);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
-      return () => hls.destroy();
-    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = HLS_SRC;
-      video.play().catch(() => {});
-    }
-  }, []);
-  return (
-    <video ref={ref} className={className} autoPlay muted loop playsInline />
-  );
-}
-
-function MP4Video({ className, src }: { className?: string; src: string }) {
-  return <video className={className} autoPlay muted loop playsInline src={src} />;
-}
-
 // ─── Countdown Timer ──────────────────────────────────────────────────────────
 function CountdownTimer({
   seconds,
@@ -738,6 +708,7 @@ export default function App() {
   const [highestPriceL, setHighestPriceL] = useState(0);
   const [totalPlayers, setTotalPlayers] = useState(0);
   const [captainNames, setCaptainNames] = useState<string[]>([]);
+  const [captainPlayers, setCaptainPlayers] = useState<Record<string, Player>>({});
 
   useEffect(() => {
     (async () => {
@@ -796,7 +767,9 @@ export default function App() {
     if (captainNames.some((name) => normalizeName(name) === normalizeName(playerName))) return;
     const promoted = current?.name === playerName;
     const nextPlayer = queue[0] ?? null;
+    const promotedPlayer = current?.name === playerName ? current : queue.find((player) => player.name === playerName);
     setCaptainNames((prev) => [...prev, playerName]);
+    if (promotedPlayer) setCaptainPlayers((prev) => ({ ...prev, [normalizeName(playerName)]: promotedPlayer }));
     setTeams((prev) => [
       ...prev,
       {
@@ -817,6 +790,21 @@ export default function App() {
     }
     setTotalPlayers((value) => Math.max(0, value - 1));
   }, [captainNames, current, queue]);
+
+  const removeCaptain = useCallback((captainName: string) => {
+    const restoredPlayer = captainPlayers[normalizeName(captainName)];
+    setCaptainNames((prev) => prev.filter((name) => name !== captainName));
+    setTeams((prev) => prev.filter((team) => team.captain !== captainName));
+    setCaptainPlayers((prev) => {
+      const next = { ...prev };
+      delete next[normalizeName(captainName)];
+      return next;
+    });
+    if (restoredPlayer) {
+      setQueue((prev) => [...prev, restoredPlayer]);
+      setTotalPlayers((value) => value + 1);
+    }
+  }, [captainPlayers]);
 
   const activeBidder = useMemo(
     () => teams.find((t) => t.id === selectedBidder) ?? null,
@@ -898,12 +886,9 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {/* Background video always present for auction/teams tabs */}
+      {/* Static backdrop keeps the auction fast and distraction-free. */}
       {tab !== "home" && (
-        <>
-          <HLSVideo className="global-bg-video" />
-          <div className="global-bg-overlay" />
-        </>
+        <div className="global-bg-overlay" />
       )}
 
       {/* Top Nav */}
@@ -982,11 +967,7 @@ export default function App() {
       )}
 
       {tab === "teams" && (
-        <>
-          <MP4Video className="global-bg-video" src={TEAM_ARENA_BG_MP4} />
-          <div className="global-bg-overlay" />
-          <TeamsArena teams={teams} />
-        </>
+        <TeamsArena teams={teams} />
       )}
 
       {tab === "settings" && (
@@ -1001,7 +982,10 @@ export default function App() {
               {captainNames.map((name) => (
                 <div key={name} className="captain-setting-row">
                   <span>{name}</span>
-                  <strong>Captain</strong>
+                  <div className="captain-actions">
+                    <strong>Captain</strong>
+                    <button className="captain-remove-button" onClick={() => removeCaptain(name)}>Remove</button>
+                  </div>
                 </div>
               ))}
             </div>
