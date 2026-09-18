@@ -711,12 +711,14 @@ export default function App() {
     const promoted = current?.name === playerName;
     const nextPlayer = queue[0] ?? null;
     const promotedPlayer = current?.name === playerName ? current : queue.find((player) => player.name === playerName);
+    const newTeamId = `t${teams.length + 1}`;
     setCaptainNames((prev) => [...prev, playerName]);
+    setSelectedBidder((selected) => selected || newTeamId);
     if (promotedPlayer) setCaptainPlayers((prev) => ({ ...prev, [normalizeName(playerName)]: promotedPlayer }));
     setTeams((prev) => [
       ...prev,
       {
-        id: `t${prev.length + 1}`,
+        id: newTeamId,
         captain: playerName,
         budgetL: TEAM_BUDGET_L,
         spentL: 0,
@@ -732,12 +734,19 @@ export default function App() {
       setRound((value) => value + 1);
     }
     setTotalPlayers((value) => Math.max(0, value - 1));
-  }, [captainNames, current, queue]);
+  }, [captainNames, current, queue, teams.length]);
 
   const removeCaptain = useCallback((captainName: string) => {
     const restoredPlayer = captainPlayers[normalizeName(captainName)];
     setCaptainNames((prev) => prev.filter((name) => name !== captainName));
-    setTeams((prev) => prev.filter((team) => team.captain !== captainName));
+    setTeams((prev) => {
+      const removed = prev.find((team) => team.captain === captainName);
+      if (removed?.id === selectedBidder) {
+        const replacement = prev.find((team) => team.id !== removed.id);
+        setSelectedBidder(replacement?.id ?? "");
+      }
+      return prev.filter((team) => team.captain !== captainName);
+    });
     setCaptainPlayers((prev) => {
       const next = { ...prev };
       delete next[normalizeName(captainName)];
@@ -747,7 +756,7 @@ export default function App() {
       setQueue((prev) => [...prev, restoredPlayer]);
       setTotalPlayers((value) => value + 1);
     }
-  }, [captainPlayers]);
+  }, [captainPlayers, selectedBidder]);
 
   const activeBidder = useMemo(
     () => teams.find((t) => t.id === selectedBidder) ?? null,
