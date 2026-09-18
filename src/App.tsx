@@ -3,11 +3,9 @@ import "./App.css";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Tab = "home" | "auction" | "teams" | "settings";
-type Tier = "LEVEL 1" | "LEVEL 2" | "LEVEL 3";
 type Player = {
   id: number;
   name: string;
-  tier: Tier;
   role: string;
   basePriceL: number;
 };
@@ -28,7 +26,6 @@ type SoldFlash = { player: Player; teamName: string; priceL: number };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const TEAM_BUDGET_L = 1000;
-const TIER_ORDER: Tier[] = ["LEVEL 1", "LEVEL 2", "LEVEL 3"];
 const ROLE_ROTATION = ["Striker", "Winger", "Midfielder", "Defender", "Goalkeeper"];
 
 const GIF_MAP: Record<string, string> = {
@@ -49,24 +46,6 @@ const normalizeName = (n: string) => n.toLowerCase().replace(/[^a-z0-9]/g, "");
 const formatCr = (l: number) => `₹${(l / 100).toFixed(2)}Cr`;
 const formatL = (l: number) => `₹${l}L`;
 
-function parseTierMap(md: string) {
-  const out = new Map<string, Tier>();
-  const rows = md
-    .split(/\r?\n/)
-    .filter((l) => l.includes("|"))
-    .slice(2);
-  for (const row of rows) {
-    const cols = row
-      .split("|")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    if (cols[0]) out.set(normalizeName(cols[0]), "LEVEL 1");
-    if (cols[1]) out.set(normalizeName(cols[1]), "LEVEL 2");
-    if (cols[2]) out.set(normalizeName(cols[2]), "LEVEL 3");
-  }
-  return out;
-}
-
 function parseCaptains(md: string) {
   return md
     .split(/\r?\n/)
@@ -83,13 +62,7 @@ function playerGifPath(name: string) {
 function funnyScore(team: Team) {
   const josh = Math.min(100, Math.round((team.spentL / TEAM_BUDGET_L) * 100));
   const bakchodi = Math.min(100, team.players.length * 12);
-  const meme = Math.min(
-    100,
-    team.players.reduce(
-      (a, p) => a + (p.player.tier === "LEVEL 3" ? 14 : 8),
-      0,
-    ),
-  );
+  const meme = Math.min(100, team.players.length * 14);
   const vibes = Math.min(
     100,
     Math.round(
@@ -302,13 +275,6 @@ function CenterPanel({
   useEffect(() => setTimerKey((k) => k + 1), [current, bidResetKey]);
   useEffect(() => setTimerPaused(false), [current, bidResetKey]);
 
-  const tierColor =
-    current?.tier === "LEVEL 1"
-      ? "var(--gold)"
-      : current?.tier === "LEVEL 2"
-        ? "#a78bfa"
-        : "#94a3b8";
-
   // Fake stat values seeded from player id for visual consistency
   const stats = current
     ? [
@@ -363,12 +329,6 @@ function CenterPanel({
               <div className="player-badges">
                 <span className="badge-role">
                   {current.role}
-                </span>
-                <span
-                  className="badge-tier"
-                  style={{ color: tierColor, borderColor: tierColor }}
-                >
-                  {current.tier}
                 </span>
               </div>
               <h1 className="player-name">{current.name.toUpperCase()}</h1>
@@ -674,9 +634,6 @@ function TeamsArena({ teams }: { teams: Team[] }) {
                 {t.players.map((p, i) => (
                   <div key={i} className="fun-player-row">
                     <span>{p.player.name}</span>
-                    <span className="fun-tier" style={{ opacity: 0.6 }}>
-                      {p.player.tier}
-                    </span>
                     <strong>{formatL(p.priceL)}</strong>
                   </div>
                 ))}
@@ -712,9 +669,8 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      const [playersMd, tierMd, captainsMd] = await Promise.all([
+      const [playersMd, captainsMd] = await Promise.all([
         fetch("/player.md").then((r) => r.text()),
-        fetch("/tier-list.md").then((r) => r.text()),
         fetch("/captains.md").then((r) => r.text()),
       ]);
       const allNames = playersMd
@@ -724,28 +680,15 @@ export default function App() {
       const loadedCaptainNames = parseCaptains(captainsMd);
       const captainSet = new Set(loadedCaptainNames.map(normalizeName));
       const names = allNames.filter((name) => !captainSet.has(normalizeName(name)));
-      const tierMap = parseTierMap(tierMd);
       const allPlayers: Player[] = names.map((name, i) => {
-        const tier = tierMap.get(normalizeName(name)) ?? "LEVEL 3";
-        const basePriceL =
-          tier === "LEVEL 1" ? 25 : tier === "LEVEL 2" ? 15 : 10;
         return {
           id: i + 1,
           name,
-          tier,
           role: ROLE_ROTATION[i % ROLE_ROTATION.length],
-          basePriceL,
+          basePriceL: 10,
         };
       });
-      const grouped = new Map<Tier, Player[]>([
-        ["LEVEL 3", []],
-        ["LEVEL 1", []],
-        ["LEVEL 2", []],
-      ]);
-      for (const p of allPlayers) grouped.get(p.tier)!.push(p);
-      for (const t of TIER_ORDER)
-        grouped.get(t)!.sort((a, b) => a.name.localeCompare(b.name));
-      const ordered = TIER_ORDER.flatMap((t) => grouped.get(t)!);
+      const ordered = allPlayers;
       const initialTeams = loadedCaptainNames.map((c, i) => ({
         id: `t${i + 1}`,
         captain: c,
