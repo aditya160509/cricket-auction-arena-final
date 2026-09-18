@@ -812,7 +812,7 @@ export default function App() {
   const sellCurrentToTeam = useCallback((teamId?: string) => {
     if (!current) return;
     const winnerId = teamId ?? bidHistory[0]?.teamId ?? selectedBidder;
-    const winner = teams.find((t) => t.id === winnerId);
+    const winner = teams.find((t) => t.id === winnerId) ?? activeBidder ?? teams[0];
     if (!winner) return;
     if (bidL > winner.budgetL) return;
     setTeams((prev) =>
@@ -834,7 +834,7 @@ export default function App() {
       teamName: winner.captain,
       priceL: bidL,
     });
-  }, [current, bidHistory, selectedBidder, teams, bidL]);
+  }, [current, bidHistory, selectedBidder, activeBidder, teams, bidL]);
 
   return (
     <div className="app-shell">
@@ -904,7 +904,7 @@ export default function App() {
               const x = Number(customIncrement);
               if (x > 0) placeBid(x);
             }}
-            onSold={() => sellCurrentToTeam(selectedBidder)}
+            onSold={() => sellCurrentToTeam()}
             onNext={nextPlayer}
             activeBidder={activeBidder}
             teams={teams}
