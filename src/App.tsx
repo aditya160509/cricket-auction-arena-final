@@ -33,11 +33,17 @@ const GIF_MAP: Record<string, string> = {
   anshparab: "Ansh",
   darsh: "Darsh",
   devmehta: "Dev",
+  drashyavaghani: "Drashya",
   harsheel: "Harsheel",
+  keyaanagarwal: "Keyaan",
+  kian: "Kian",
+  priyam: "Priyam",
   raihanshaikh: "Raihan",
   siddhantfouzdar: "Siddhant",
   veers: "Veer",
   vihaansheth: "Vihaan",
+  aditya: "Aditya",
+  monaal: "Monaal",
 };
 
 
