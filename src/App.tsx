@@ -33,17 +33,11 @@ const GIF_MAP: Record<string, string> = {
   anshparab: "Ansh",
   darsh: "Darsh",
   devmehta: "Dev",
-  drashyavaghani: "Drashya",
   harsheel: "Harsheel",
-  keyaanagarwal: "Keyaan",
-  kian: "Kian",
-  priyam: "Priyam",
   raihanshaikh: "Raihan",
   siddhantfouzdar: "Siddhant",
   veers: "Veer",
   vihaansheth: "Vihaan",
-  aditya: "Aditya",
-  monaal: "Monaal",
 };
 
 
@@ -322,7 +316,7 @@ function CenterPanel({
           {/* Player hero */}
           <div className="player-hero">
             <div className="player-gif-wrap">
-<div className="player-avatar-fallback">{current.name[0]}</div>
+              <div className="player-avatar-fallback">{current.name}</div>
               <div className="player-ovr">
                 <span className="ovr-num">{85 + (current.id % 15)}</span>
                 <span className="ovr-label">OVR</span>
