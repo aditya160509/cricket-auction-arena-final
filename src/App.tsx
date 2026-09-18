@@ -37,18 +37,15 @@ const TEAM_ARENA_BG_MP4 =
   "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260506_031045_0e1165dd-ab48-46e3-ad3d-5fe77f217647.mp4";
 
 const GIF_MAP: Record<string, string> = {
-  aagam: "Aagam",
-  anjaney: "Anjaney",
-  ansh: "Ansh",
-  anshul: "Anshul",
+  anjaneypandey: "Anjaney",
+  anshparab: "Ansh",
   darsh: "Darsh",
-  dev: "Dev",
+  devmehta: "Dev",
   harsheel: "Harsheel",
-  raihan: "Raihan",
-  shaunak: "Shaunak",
-  siddhant: "Siddhant",
-  veer: "Veer",
-  vihaan: "Vihaan",
+  raihanshaikh: "Raihan",
+  siddhantfouzdar: "Siddhant",
+  veers: "Veer",
+  vihaansheth: "Vihaan",
 };
 
 
@@ -84,8 +81,8 @@ function parseCaptains(md: string) {
 
 function playerGifPath(name: string) {
   const key = normalizeName(name);
-  const match = Object.keys(GIF_MAP).find((k) => key.includes(k));
-  return match ? `/assets/players/${GIF_MAP[match]}/celebration.gif` : "";
+  const folder = GIF_MAP[key];
+  return folder ? `/assets/players/${folder}/celebration.gif` : "";
 }
 
 function funnyScore(team: Team) {
