@@ -3,7 +3,7 @@ import Hls from "hls.js";
 import "./App.css";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = "home" | "auction" | "teams";
+type Tab = "home" | "auction" | "teams" | "settings";
 type Tier = "LEVEL 1" | "LEVEL 2" | "LEVEL 3";
 type Player = {
   id: number;
@@ -740,6 +740,7 @@ export default function App() {
   const [soldCount, setSoldCount] = useState(0);
   const [highestPriceL, setHighestPriceL] = useState(0);
   const [totalPlayers, setTotalPlayers] = useState(0);
+  const [captainNames, setCaptainNames] = useState<string[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -748,10 +749,13 @@ export default function App() {
         fetch("/tier-list.md").then((r) => r.text()),
         fetch("/captains.md").then((r) => r.text()),
       ]);
-      const names = playersMd
+      const allNames = playersMd
         .split(/\r?\n/)
         .map((s) => s.trim())
         .filter(Boolean);
+      const loadedCaptainNames = parseCaptains(captainsMd);
+      const captainSet = new Set(loadedCaptainNames.map(normalizeName));
+      const names = allNames.filter((name) => !captainSet.has(normalizeName(name)));
       const tierMap = parseTierMap(tierMd);
       const allPlayers: Player[] = names.map((name, i) => {
         const tier = tierMap.get(normalizeName(name)) ?? "LEVEL 3";
@@ -774,8 +778,7 @@ export default function App() {
       for (const t of TIER_ORDER)
         grouped.get(t)!.sort((a, b) => a.name.localeCompare(b.name));
       const ordered = TIER_ORDER.flatMap((t) => grouped.get(t)!);
-      const captainNames = parseCaptains(captainsMd);
-      const initialTeams = captainNames.map((c, i) => ({
+      const initialTeams = loadedCaptainNames.map((c, i) => ({
         id: `t${i + 1}`,
         captain: c,
         budgetL: TEAM_BUDGET_L,
@@ -783,6 +786,7 @@ export default function App() {
         players: [],
       }));
       setTeams(initialTeams);
+      setCaptainNames(loadedCaptainNames);
       setCurrent(ordered[0] ?? null);
       setQueue(ordered.slice(1));
       setBidL(ordered[0]?.basePriceL ?? 10);
@@ -790,6 +794,32 @@ export default function App() {
       setTotalPlayers(ordered.length);
     })();
   }, []);
+
+  const makeCaptain = useCallback((playerName: string) => {
+    if (captainNames.some((name) => normalizeName(name) === normalizeName(playerName))) return;
+    const promoted = current?.name === playerName;
+    const nextPlayer = queue[0] ?? null;
+    setCaptainNames((prev) => [...prev, playerName]);
+    setTeams((prev) => [
+      ...prev,
+      {
+        id: `t${prev.length + 1}`,
+        captain: playerName,
+        budgetL: TEAM_BUDGET_L,
+        spentL: 0,
+        players: [],
+      },
+    ]);
+    setQueue((prev) => prev.filter((player) => player.name !== playerName));
+    if (promoted) {
+      setCurrent(nextPlayer);
+      setQueue((prev) => prev.slice(1));
+      setBidL(nextPlayer?.basePriceL ?? 10);
+      setBidHistory([]);
+      setRound((value) => value + 1);
+    }
+    setTotalPlayers((value) => Math.max(0, value - 1));
+  }, [captainNames, current, queue]);
 
   const activeBidder = useMemo(
     () => teams.find((t) => t.id === selectedBidder) ?? null,
@@ -893,7 +923,7 @@ export default function App() {
           </div>
         )}
         <nav className="topnav-right">
-          {(["home", "auction", "teams"] as Tab[]).map((t) => (
+          {(["home", "auction", "teams", "settings"] as Tab[]).map((t) => (
             <button
               key={t}
               className={`nav-tab ${tab === t ? "nav-tab-active" : ""}`}
@@ -903,7 +933,9 @@ export default function App() {
                 ? "Home"
                 : t === "auction"
                   ? "Live Auction"
-                  : "Team Arena"}
+                  : t === "teams"
+                    ? "Team Arena"
+                    : "Settings"}
             </button>
           ))}
         </nav>
@@ -958,6 +990,35 @@ export default function App() {
           <div className="global-bg-overlay" />
           <TeamsArena teams={teams} />
         </>
+      )}
+
+      {tab === "settings" && (
+        <section className="settings-page">
+          <div className="settings-card">
+            <p className="sidebar-section-label">AUCTION SETTINGS</p>
+            <h1>Manage Captains</h1>
+            <p className="settings-copy">
+              Promote a player to captain. They will be removed from the auction pool and receive a new team purse.
+            </p>
+            <div className="captain-list">
+              {captainNames.map((name) => (
+                <div key={name} className="captain-setting-row">
+                  <span>{name}</span>
+                  <strong>Captain</strong>
+                </div>
+              ))}
+            </div>
+            <h2>Promote a player</h2>
+            <div className="promote-list">
+              {[current, ...queue].filter((player): player is Player => Boolean(player)).map((player) => (
+                <button key={player.id} className="promote-button" onClick={() => makeCaptain(player.name)}>
+                  <span>{player.name}</span>
+                  <span>Make captain →</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
       )}
 
       {soldFlash && (

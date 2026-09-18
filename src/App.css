@@ -120,6 +120,92 @@ input {
   color: var(--text-dim);
 }
 
+/* ─── Captain settings ─────────────────────────────────────────────────────── */
+.settings-page {
+  position: relative;
+  z-index: 10;
+  flex: 1;
+  overflow: auto;
+  padding: 48px clamp(20px, 6vw, 96px);
+}
+
+.settings-card {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px;
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius);
+  background: rgba(8, 11, 18, 0.82);
+  backdrop-filter: blur(18px);
+}
+
+.settings-card h1 {
+  margin-top: 8px;
+  font-family: var(--font-display);
+  font-size: 48px;
+  letter-spacing: 1px;
+  color: var(--gold);
+}
+
+.settings-card h2 {
+  margin: 28px 0 12px;
+  font-family: var(--font-ui);
+  font-size: 22px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.settings-copy {
+  max-width: 58ch;
+  margin: 8px 0 24px;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+.captain-list,
+.promote-list {
+  display: grid;
+  gap: 8px;
+}
+
+.captain-setting-row,
+.promote-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+}
+
+.captain-setting-row strong {
+  color: var(--gold);
+  font-family: var(--font-ui);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.promote-button {
+  width: 100%;
+  text-align: left;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.promote-button:hover {
+  border-color: var(--gold-border);
+  background: var(--gold-dim);
+}
+
+.promote-button span:last-child {
+  color: var(--gold);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
 .topnav-broadcast {
   letter-spacing: 2px;
 }
